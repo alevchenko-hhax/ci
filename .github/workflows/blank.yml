@@ -1,0 +1,28 @@
+
+name: GitVersion
+on:
+  pull_request:
+    types:
+      - closed
+jobs:
+  gitversion:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Set up .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: '6.0.x'
+      - name: Install GitVersion tool
+        run: dotnet tool install --global GitVersion.Tool
+      - name: Run GitVersion
+        run: |
+          dotnet tool restore
+          dotnet gitversion /updateassemblyinfo
+      - name: Create tag
+        run: git tag ${{ env.VERSION }}
+      - name: Push tag
+        run: git push origin ${{ env.VERSION }}
+        env:
+          VERSION: ${{ steps.gitversion.outputs.semver }}
